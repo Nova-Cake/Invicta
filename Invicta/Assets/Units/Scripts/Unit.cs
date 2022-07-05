@@ -5,51 +5,47 @@ using UnityEngine.AI;
 
 public class Unit : MonoBehaviour
 {
-    
-    [HideInInspector] public List<GameObject> subunits;
-    [HideInInspector] public List<GameObject> aliveSubunits;
+    [HideInInspector] public List<Subunit> subunits;
+    [HideInInspector] public List<Subunit> aliveSubunits;
     [SerializeField] int subunitCount;
     [SerializeField] SubunitObject subunitObject;
-    
-    
 
-    int unitWidth = 16;
+    int unitWidth = 50;
     int unitDepth;
     int unitSpacing = 2;
     [SerializeField] float noise;
     float direction = 0;
 
-    [SerializeField] GameObject testPrefab;
     [SerializeField] GameObject previewPrefab;
     [SerializeField] GameObject arrowPrefab;
     List<GameObject> previews = new List<GameObject>();
 
     int minWidth = 8;
     int maxWidth;
-    LayerMask terrain;
+    LayerMask layerMask;
     Vector3 startVector;
-
-    
-
-
-
     Camera cam;
+    public bool isSelected;
+
+    public int morale;
 
     void Awake()
     {
+        isSelected = false;
         cam = Camera.main;
-        terrain = LayerMask.GetMask("Terrain");
+        layerMask = LayerMask.GetMask("Terrain", "Hitbox");
          
         for(int i = 0; i < subunitCount; i++)
         {
-            GameObject subUnit = Instantiate<GameObject>(testPrefab);
-            subunits.Add(subUnit);
+            GameObject subUnit = subunitObject.Instantiate();
+            subunits.Add(subUnit.GetComponent<Subunit>());
             subUnit.transform.SetParent(this.transform);
+            subUnit.GetComponent<Subunit>().unit = this;
         }
 
-        aliveSubunits = new List<GameObject>(subunits);
+        aliveSubunits = new List<Subunit>(subunits);
         UpdateDimensions();
-        List<Vector3> startingOffsets = GetOffsets(Vector3.zero);
+        List<Vector3> startingOffsets = GetOffsets(this.transform.position);
 
         for(int i = 0; i < aliveSubunits.Count; i++)
         {
@@ -58,6 +54,14 @@ public class Unit : MonoBehaviour
     }
 
     void Update()
+    {
+        if(isSelected)
+        {
+            HandleMovement();
+        }
+    }
+
+    void HandleMovement()
     {
         foreach(GameObject preview in previews)
         {
@@ -69,9 +73,16 @@ public class Unit : MonoBehaviour
             Ray ray = cam.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
 
-            if(Physics.Raycast(ray, out hit, Mathf.Infinity, terrain))
+            if(Physics.Raycast(ray, out hit, Mathf.Infinity, layerMask))
             {
-                startVector = hit.point;
+                if(hit.collider.gameObject.layer == 9)
+                {
+                    startVector = hit.point;
+                }
+                else if(hit.collider.gameObject.layer == 11 && hit.collider.gameObject != this.gameObject)
+                {
+                    AttackUnit(hit.transform.parent.GetComponent<Subunit>().unit);
+                }
             }
         }
 
@@ -80,25 +91,29 @@ public class Unit : MonoBehaviour
             Ray ray = cam.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
 
-            if(Physics.Raycast(ray, out hit, Mathf.Infinity, terrain))
+            
+            if(Physics.Raycast(ray, out hit, Mathf.Infinity, layerMask))
             {
-                Vector3 start2D = new Vector3(startVector.x, 0, startVector.z);
-                Vector3 hit2D = new Vector3(hit.point.x, 0, hit.point.z);
+                if(hit.collider.gameObject.layer == 9)
+                {    
+                    Vector3 start2D = new Vector3(startVector.x, 0, startVector.z);
+                    Vector3 hit2D = new Vector3(hit.point.x, 0, hit.point.z);
 
-                float spread =Vector3.Distance(hit2D, start2D);
-                float angle = hit2D.x > start2D.x ? -Vector3.Angle(hit2D - start2D, transform.forward) + 90 :
-                Vector3.Angle(hit2D - start2D, transform.forward) + 90;
-                angle = angle < 0 ? angle + 360 : angle; // I FUCKING LOVE TERNARY OPERATORS
+                    float spread =Vector3.Distance(hit2D, start2D);
+                    float angle = hit2D.x > start2D.x ? -Vector3.Angle(hit2D - start2D, transform.forward) + 90 :
+                    Vector3.Angle(hit2D - start2D, transform.forward) + 90;
+                    angle = angle < 0 ? angle + 360 : angle; // I FUCKING LOVE TERNARY OPERATORS
 
-                direction = -angle;
-                unitWidth = Mathf.Clamp((int)spread, minWidth, maxWidth);
-                UpdateDimensions();
-                
-                previews.Add(Instantiate(arrowPrefab, GetOffset(startVector, unitWidth / 2, unitDepth + 2), Quaternion.Euler(0, 90 + direction, 0)));
-                List<Vector3> offsets = GetOffsets(startVector);
-                foreach(Vector3 offset in offsets)
-                {
-                    previews.Add(Instantiate(previewPrefab, offset, Quaternion.Euler(0, 0, 0)));
+                    direction = -angle;
+                    unitWidth = Mathf.Clamp((int)spread, minWidth, maxWidth);
+                    UpdateDimensions();
+                    
+                    previews.Add(Instantiate(arrowPrefab, GetOffset(startVector, unitWidth / 2, unitDepth + 2), Quaternion.Euler(0, 90 + direction, 0)));
+                    List<Vector3> offsets = GetOffsets(startVector);
+                    foreach(Vector3 offset in offsets)
+                    {
+                        previews.Add(Instantiate(previewPrefab, offset, Quaternion.Euler(0, 0, 0)));
+                    }
                 }
             }
         }
@@ -108,12 +123,22 @@ public class Unit : MonoBehaviour
             Ray ray = cam.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
 
-            if(Physics.Raycast(ray, out hit, Mathf.Infinity, terrain))
+            if(Physics.Raycast(ray, out hit, Mathf.Infinity, layerMask))
             {  
-                MoveUnit(startVector);
+                if(hit.collider.gameObject.layer == 9)
+                {
+                    MoveUnit(startVector);
+                }
             }
         }
-        
+    }
+
+    void AttackUnit(Unit unit)
+    {
+        foreach(Subunit subunit in subunits)
+        {
+            subunit.AttackUnit(unit);
+        }
     }
 
     void UpdateDimensions()
@@ -132,9 +157,9 @@ public class Unit : MonoBehaviour
     {
         for(int i = 0; i < offsets.Count; i++)
         {
-            GameObject subunit = subunits[i];
+            Subunit subunit = subunits[i];
             Vector3 noiseVector = new Vector3(Random.Range(-noise, noise), 0 ,Random.Range(-noise, noise));
-            subunit.GetComponent<NavMeshAgent>().SetDestination(offsets[i] + noiseVector);
+            subunit.gameObject.GetComponent<NavMeshAgent>().SetDestination(offsets[i] + noiseVector);
         }
     }
 

@@ -12,15 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f119f4020b4ea0540a1d8d6d32f2cc1c, type: 3}
   m_Name: unamed_subunit
   m_EditorClassIdentifier: 
-  id: 
+  id: test_1
   unitType: 0
   unitSubtype: 0
-  unit: {fileID: 11400000, guid: eb66472ab5da6ad4783b6680a386f691, type: 2}
-  meleeAtk: 0
+  meleeAtk: 10
+  health: 100
+  defence: 10
+  shock: 25
+  morale: 50
   rangedAtk: 0
   ammo: 0
   range: 0
-  health: 0
-  defence: 0
-  shock: 0
-  morale: 0
+  speed: 10
+  prefab: {fileID: 3005073946810027147, guid: 2ad47b7ed455968448e2444a2ae66d4f, type: 3}
