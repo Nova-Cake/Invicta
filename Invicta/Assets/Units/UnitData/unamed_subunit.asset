@@ -10,18 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f119f4020b4ea0540a1d8d6d32f2cc1c, type: 3}
-  m_Name: unamed_subunit2
+  m_Name: unamed_subunit
   m_EditorClassIdentifier: 
-  id: test_2
+  id: test_1
   unitType: 0
   unitSubtype: 0
   meleeAtk: 10
+  shock: 25
   health: 100
   defence: 10
-  shock: 25
   morale: 50
   rangedAtk: 0
   ammo: 0
-  range: 0
+  range: 10
   speed: 10
-  prefab: {fileID: 3705897963898500170, guid: 8ce7a949a71b3a44193fbd41baa4caa4, type: 3}
+  prefab: {fileID: 3005073946810027147, guid: 2ad47b7ed455968448e2444a2ae66d4f, type: 3}

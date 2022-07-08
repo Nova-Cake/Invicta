@@ -2,35 +2,37 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "unamed_subunit", menuName = "SubunitObject")]
-public class SubunitObject : ScriptableObject
+[CreateAssetMenu(fileName = "unamed_subunit", menuName = "UnitData")]
+public class UnitData : ScriptableObject
 {
     public string id;
-    public UnitType unitType;
-    public UnitSubtype unitSubtype;
 
-    public int meleeAtk;
+    // Unit Type
+    public Type unitType;
+    public Subtype unitSubtype;
+
+    
+    [SerializeField] List<WeaponData> weapons = new List<WeaponData>();
+
     public int health;
     public int defence;
-    public int shock;
     public int morale;
-    public int rangedAtk;
-    public int ammo;
-    public int range;
     public int speed;
+    public int shock;
+
 
     [SerializeField] GameObject prefab;
 
-    public GameObject Instantiate()
+    public GameObject Instantiate(Unit unit)
     {
         GameObject gameObject = Instantiate<GameObject>(prefab);
         Subunit subunit = gameObject.AddComponent<Subunit>();
         subunit.unitData = this;
-        subunit.Instantiate();
+        subunit.Instantiate(unit);
         return gameObject;
     }
 
-    public enum UnitType
+    public enum Type
     {
         melee,
         ranged,
@@ -38,7 +40,7 @@ public class SubunitObject : ScriptableObject
         elephant
     }
 
-    public enum UnitSubtype
+    public enum Subtype
     {
         sword,
         spear,
@@ -46,6 +48,10 @@ public class SubunitObject : ScriptableObject
         archer,
         javelin,
         slinger,
+        meleeCav,
+        shockCav,
+        missileCav,
+        elephant
     }
 }
 
